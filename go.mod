@@ -1,4 +1,4 @@
-module github.com/ranjanrak/sqlcandlestick
+module github.com/ranjanrak/go-sqlcandlestick
 
 go 1.18
 
