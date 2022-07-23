@@ -1,5 +1,8 @@
 # go-sqlcandlestick
 
+[![Run Tests](https://github.com/ranjanrak/go-sqlcandlestick/actions/workflows/go-test.yml/badge.svg)](https://github.com/ranjanrak/go-sqlcandlestick/actions/workflows/go-test.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/ranjanrak/go-sqlcandlestick.svg)](https://pkg.go.dev/github.com/ranjanrak/go-sqlcandlestick)
+
 Tiny go package for serving candlestick chart for relational database.
 
 ## Installation
@@ -25,6 +28,7 @@ func main() {
     if err != nil {
         log.Fatalf("Error connecting to db: %v", err)
     }
+    // Prepare sql statement
     queryStatement := `SELECT date,
                         open,
                         close
@@ -45,11 +49,14 @@ func main() {
 
 ## Create your own candlestick pattern
 
-You can create your own chartstick chart types and pass the same chart config to `ServeChart(..., chart *charts.Kline)`.
-Few examples are shown under [examples](https://github.com/ranjanrak/go-sqlcandlestick/tree/main/examples) folder.
+You can create your own candlestick chart types and pass the chart config to `ServeChart(..., chart *charts.Kline)`.
+Few example chart config are shown under [examples](https://github.com/ranjanrak/go-sqlcandlestick/tree/main/examples) folder.
 
 1. Candlestick OCLH chart along with volume movement
    ![image](https://user-images.githubusercontent.com/29432131/180378371-8665436f-3bb1-48d5-9dd9-e4b748e89a3d.png)
+
+2. Candlestick OCLH chart with EMA and SMA lines
+   ![image](https://user-images.githubusercontent.com/29432131/180597744-36ec1cdc-10d8-4992-923d-f3fd3333d3cc.png)
 
 ### Run unit tests
 

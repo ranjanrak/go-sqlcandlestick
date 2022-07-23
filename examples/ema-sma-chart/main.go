@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"math/rand"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
@@ -54,22 +53,48 @@ func main() {
 		charts.WithItemStyleOpts(opts.ItemStyle{Color: "green", Color0: "red", BorderColor: "green",
 			BorderColor0: "red"}))
 
-	// Create volume bar chart
-	volumeBarChart := charts.NewBar()
-	volumeBarChart.SetXAxis(kd.XAxis).AddSeries("Volume", generateBarItems(len(kd.XAxis)),
-		charts.WithItemStyleOpts(opts.ItemStyle{Color: "Green"}))
+	// Simple moving average line chart
+	smaLineChart := charts.NewLine()
+	smaLineChart.SetGlobalOptions(charts.WithXAxisOpts(opts.XAxis{SplitNumber: 20, GridIndex: 0}), charts.WithYAxisOpts(opts.YAxis{Scale: true, GridIndex: 0}))
+	smaLineChart.AddSeries("SMA", generateSMAItems(kd.YAxis),
+		charts.WithLineStyleOpts(opts.LineStyle{Color: "Black"}),
+		charts.WithItemStyleOpts(opts.ItemStyle{Opacity: 0.01}),
+		charts.WithLineChartOpts(opts.LineChart{XAxisIndex: 0, YAxisIndex: 0}))
+	kline.Overlap(smaLineChart)
 
-	kline.Overlap(volumeBarChart)
+	// Create exponential moving avg line chart
+	emaLineChart := charts.NewLine()
+	emaLineChart.SetGlobalOptions(charts.WithXAxisOpts(opts.XAxis{SplitNumber: 20, GridIndex: 0}), charts.WithYAxisOpts(opts.YAxis{Scale: true, GridIndex: 0}))
+	emaLineChart.AddSeries("EMA", generateEMAItems(kd.YAxis),
+		charts.WithLineStyleOpts(opts.LineStyle{Color: "Blue"}),
+		charts.WithItemStyleOpts(opts.ItemStyle{Opacity: 0.01}),
+		charts.WithLineChartOpts(opts.LineChart{XAxisIndex: 0, YAxisIndex: 0}))
+	kline.Overlap(emaLineChart)
 
 	// Serve the modified candlestick with volume chart
 	client.ServeChart(queryStatement, "", kline)
 }
 
-// Generate random bar items
-func generateBarItems(kd int) []opts.BarData {
-	items := make([]opts.BarData, 0)
-	for i := 0; i < kd; i++ {
-		items = append(items, opts.BarData{Value: rand.Intn(2100-2000) + 2000})
+// Create simple moving average values
+func generateSMAItems(kd []opts.KlineData) []opts.LineData {
+	items := make([]opts.LineData, 0)
+	var sum, avg float32
+	for i := 0; i < len(kd); i++ {
+		// Use only close value in OCHL to calculate SMA
+		sum = sum + kd[i].Value.([4]interface{})[1].(float32)
+		avg = sum / float32(i+1)
+		items = append(items, opts.LineData{Value: avg})
+	}
+	return items
+}
+
+// Create exponential moving average values
+func generateEMAItems(kd []opts.KlineData) []opts.LineData {
+	items := make([]opts.LineData, 0)
+	for i := 0; i < len(kd); i++ {
+		ochl := kd[i].Value.([4]interface{})
+		avg := (ochl[0].(float32) + ochl[1].(float32) + ochl[2].(float32) + ochl[3].(float32)) / 4
+		items = append(items, opts.LineData{Value: avg})
 	}
 	return items
 }
